@@ -1,41 +1,70 @@
 // src/components/PlayerList.jsx
 import { useEffect, useState } from 'react';
-import { getPlayers } from '../api/playerApi';
+import axios from 'axios';
 
-const PlayerList = () => {
-  const [players, setPlayers] = useState([]);
-  const [loading, setLoading] = useState(true);
+function PlayerList() {
+    const [players, setPlayers] = useState([]);
+    const [portfolio, setPortfolio] = useState([]);
+    const totalValue = portfolio.reduce((sum, player) => sum + player.currentValue, 0);
 
-  useEffect(() => {
-    getPlayers()
-      .then((res) => {
-        setPlayers(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch players:", err);
-        setLoading(false);
-      });
-  }, []);
 
-  if (loading) return <p>Loading players...</p>;
+    useEffect(() => {
+        axios.get('http://localhost:5049/api/Players')
+            .then(res => setPlayers(res.data))
+            .catch(err => console.error('Failed to fetch players:', err));
+    }, []);
 
-  return (
-    <div>
-      <h2>Players</h2>
-      {players.length === 0 ? (
-        <p>No players found.</p>
-      ) : (
-        <ul>
-          {players.map((player) => (
-            <li key={player.id}>
-              {player.name} — {player.position} — {player.team}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-};
+    const buyPlayer = (player) => {
+        const alreadyOwned = portfolio.some(p => p.id === player.id);
+        if (alreadyOwned) {
+            alert(`${player.name} is already in your portfolio.`);
+            return;
+        }
+        setPortfolio((prev) => [...prev, player]);
+    };
+
+    const sellPlayer = (playerId) => {
+        setPortfolio((prev) => prev.filter(p => p.id !== playerId));
+    };
+
+
+    return (
+        <div style={{ display: 'flex', gap: '2rem' }}>
+            <div>
+                <h2>Available Players</h2>
+                {players.length === 0 ? (
+                    <p>No players found.</p>
+                ) : (
+                    players.map(player => (
+                        <div key={player.id}>
+                            <strong>{player.name}</strong> – {player.team} – ${player.currentValue}
+                            <button
+                                onClick={() => buyPlayer(player)}
+                                disabled={portfolio.some(p => p.id === player.id)}
+                            >
+                                {portfolio.some(p => p.id === player.id) ? 'Owned' : 'Buy'}
+                            </button>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            <div>
+                <h2>Your Portfolio</h2>
+                <p>Total Value: ${totalValue.toLocaleString()}</p>
+                {portfolio.length === 0 ? (
+                    <p>No players owned.</p>
+                ) : (
+                    portfolio.map(p => (
+                        <div key={p.id}>
+                            <strong>{p.name}</strong> – {p.team}
+                            <button onClick={() => sellPlayer(p.id)}>Sell</button>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+}
 
 export default PlayerList;
