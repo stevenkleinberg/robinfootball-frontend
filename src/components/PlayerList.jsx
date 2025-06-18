@@ -27,6 +27,13 @@ function PlayerList() {
         setPortfolio((prev) => prev.filter(p => p.id !== playerId));
     };
 
+    const adjustValue = (id, delta) => {
+        setPortfolio(prev =>
+            prev.map(p =>
+                p.id === id ? { ...p, currentValue: p.currentValue + delta } : p
+            )
+        );
+    };
 
     return (
         <div style={{ display: 'flex', gap: '2rem' }}>
@@ -55,10 +62,14 @@ function PlayerList() {
                 {portfolio.length === 0 ? (
                     <p>No players owned.</p>
                 ) : (
-                    portfolio.map(p => (
-                        <div key={p.id}>
-                            <strong>{p.name}</strong> – {p.team}
-                            <button onClick={() => sellPlayer(p.id)}>Sell</button>
+                    portfolio.map(player => (
+                        <div key={player.id}>
+                            <strong>{player.name}</strong> — ${player.currentValue.toLocaleString()}
+                            <div>
+                                <button onClick={() => adjustValue(player.id, 10)}>📈 +10</button>
+                                <button onClick={() => adjustValue(player.id, -10)}>📉 -10</button>
+                                <button onClick={() => sellPlayer(player.id)}>🗑️ Sell</button>
+                            </div>
                         </div>
                     ))
                 )}
