@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-function PlayerList() {
-    const [players, setPlayers] = useState([]);
+function PlayerList({ initialPlayers = [] }) {
+    const [players, setPlayers] = useState(initialPlayers);
     const [portfolio, setPortfolio] = useState([]);
     const totalValue = portfolio.reduce((sum, player) => sum + player.currentValue, 0);
 
